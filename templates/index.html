@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Uganda Household Enterprise ML Predictor
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+</head>
+
+
+<body data-active-tab="{{ active_tab }}">
+
+<div class="page-container">
+
+    <!-- ========================================= -->
+    <!-- HEADER -->
+    <!-- ========================================= -->
+
+    <header class="hero">
+
+        <h1>
+            Uganda Household Enterprise ML Predictor
+        </h1>
+
+        <h2>
+            Group 1 Developing Data Products
+            Capstone Models
+        </h2>
+
+        <p>
+            Using
+            <strong>
+                Uganda National Panel Survey
+                2019–2020
+            </strong>
+            household-enterprise data.
+        </p>
+
+        <div class="notice">
+            These predictions are for academic
+            demonstration and decision support.
+            They should not be treated as
+            guaranteed business outcomes.
+        </div>
+
+    </header>
+
+
+    <!-- ========================================= -->
+    <!-- TAB BUTTONS -->
+    <!-- ========================================= -->
+
+    <nav class="tabs">
+
+        <button
+            type="button"
+            class="tab-button"
+            data-tab="regression"
+        >
+            💰 Revenue Regression
+        </button>
+
+        <button
+            type="button"
+            class="tab-button"
+            data-tab="classification"
+        >
+            📈 Revenue Trend Classification
+        </button>
+
+        <button
+            type="button"
+            class="tab-button"
+            data-tab="about"
+        >
+            ℹ️ About the Models
+        </button>
+
+    </nav>
+
+
+    <!-- ========================================= -->
+    <!-- REGRESSION TAB -->
+    <!-- ========================================= -->
+
+    <section
+        id="regression"
+        class="tab-content"
+    >
+
+        <h2>
+            Predict Monthly Gross Revenue
+        </h2>
+
+        <p class="section-description">
+            Enter an enterprise profile.
+            The deployed
+            <strong>
+                Random Forest Regression
+            </strong>
+            pipeline predicts average monthly
+            gross revenue.
+        </p>
+
+
+        <form
+            action="/predict-regression"
+            method="POST"
+        >
+
+            <div class="form-grid">
+
+                <!-- LEFT COLUMN -->
+
+                <div class="form-column">
+
+                    <div class="field">
+
+                        <label>
+                            Business age (years)
+                        </label>
+
+                        <input
+                            type="number"
+                            name="business_age"
+                            min="0"
+                            step="1"
+                            value="{{ form.get('business_age', 8) }}"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label>
+                            Months operated in the
+                            last 12 months
+                        </label>
+
+                        <input
+                            type="number"
+                            name="months"
+                            min="1"
+                            max="12"
+                            step="1"
+                            value="{{ form.get('months', 12) }}"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label>
+                            Paid workers
+                        </label>
+
+                        <input
+                            type="number"
+                            name="paid_workers"
+                            min="0"
+                            step="1"
+                            value="{{ form.get('paid_workers', 0) }}"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label>
+                            Unpaid workers
+                        </label>
+
+                        <input
+                            type="number"
+                            name="unpaid_workers"
+                            min="0"
+                            step="1"
+                            value="{{ form.get('unpaid_workers', 0) }}"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label>
+                            Monthly raw-material
+                            cost (UGX)
+                        </label>
+
+                        <input
+                            type="number"
+                            name="raw_material_cost"
+                            min="0"
+                            step="1000"
+                            value="{{ form.get('raw_material_cost', 100000) }}"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label>
+                            Other monthly operating
+                            cost (UGX)
+                        </label>
+
+                        <input
+                            type="number"
+                            name="operating_cost"
+                            min="0"
+                            step="1000"
+                            value="{{ form.get('operating_cost', 10000) }}"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- RIGHT COLUMN -->
+
+                <div class="form-column">
+
+                    <div class="field">
+
+                        <label>
+                            Business sector
+                        </label>
+
+                        <select
+                            name="sector"
+                            required
+                        >
+
+                            {% for item in options["business_sector"] %}
+
+                            <option
+                                value="{{ item }}"
+                                {% if form.get('sector') == item %}
+                                    selected
+                                {% elif not form.get('sector') and loop.first %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ item }}
+                            </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label>
+                            How was the business acquired?
+                        </label>
+
+                        <select
+                            name="acquisition"
+                            required
+                        >
+
+                            {% for item in options["business_acquisition_method"] %}
+
+                            <option
+                                value="{{ item }}"
+                                {% if form.get('acquisition') == item %}
+                                    selected
+                                {% elif not form.get('acquisition') and loop.first %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ item }}
+                            </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label>
+                            Main startup funding source
+                        </label>
+
+                        <select
+                            name="funding"
+                            required
+                        >
+
+                            {% for item in options["startup_funding_source"] %}
+
+                            <option
+                                value="{{ item }}"
+                                {% if form.get('funding') == item %}
+                                    selected
+                                {% elif not form.get('funding') and loop.first %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ item }}
+                            </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label>
+                            Business location
+                        </label>
+
+                        <select
+                            name="location"
+                            required
+                        >
+
+                            {% for item in options["business_location"] %}
+
+                            <option
+                                value="{{ item }}"
+                                {% if form.get('location') == item %}
+                                    selected
+                                {% elif not form.get('location') and loop.first %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ item }}
+                            </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label>
+                            Used funding for expansion?
+                        </label>
+
+                        <select
+                            name="expansion"
+                            required
+                        >
+
+                            {% for item in options["used_funding_for_expansion"] %}
+
+                            <option
+                                value="{{ item }}"
+                                {% if form.get('expansion') == item %}
+                                    selected
+                                {% elif not form.get('expansion') and loop.first %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ item }}
+                            </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label>
+                            VAT registration status
+                        </label>
+
+                        <select
+                            name="vat"
+                            required
+                        >
+
+                            {% for item in options["vat_registration_status"] %}
+
+                            <option
+                                value="{{ item }}"
+                                {% if form.get('vat') == item %}
+                                    selected
+                                {% elif not form.get('vat') and loop.first %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ item }}
+                            </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label>
+                            Income-tax registration status
+                        </label>
+
+                        <select
+                            name="income_tax"
+                            required
+                        >
+
+                            {% for item in options["income_tax_registration_status"] %}
+
+                            <option
+                                value="{{ item }}"
+                                {% if form.get('income_tax') == item %}
+                                    selected
+                                {% elif not form.get('income_tax') and loop.first %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ item }}
+                            </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <button
+                class="predict-button"
+                type="submit"
+            >
+                Predict Monthly Revenue
+            </button>
+
+        </form>
+
+
+        {% if reg_result %}
+
+        <div class="result-card success">
+
+            <p>
+                Predicted Monthly Gross Revenue
+            </p>
+
+            <h2>
+                {{ reg_result }}
+            </h2>
+
+            <small>
+                Model:
+                Random Forest Regression
+            </small>
+
+        </div>
+
+        {% endif %}
+
+
+        {% if reg_error %}
+
+        <div class="result-card error">
+
+            {{ reg_error }}
+
+        </div>
+
+        {% endif %}
+
+    </section>
+
+
+    <!-- ========================================= -->
+    <!-- CLASSIFICATION TAB -->
+    <!-- ========================================= -->
+
+    <section
+        id="classification"
+        class="tab-content"
+    >
+
+        <h2>
+            Predict Revenue Performance Trend
+        </h2>
+
+        <p class="section-description">
+            The deployed
+            <strong>
+                Multinomial Logistic Regression
+            </strong>
+            model predicts whether enterprise
+            revenue Increased, Decreased, or
+            Remained the same.
+        </p>
+
+
+        <form
+            action="/predict-classification"
+            method="POST"
+        >
+
+            <div class="form-grid">
+
+                <div class="form-column">
+
+                    <div class="field">
+
+                        <label>
+                            Business age (years)
+                        </label>
+
+                        <input
+                            type="number"
+                            name="business_age"
+                            min="0"
+                            step="1"
+                            value="{{ form.get('business_age', 8) }}"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label>
+                            Months operated in the
+                            last 12 months
+                        </label>
+
+                        <input
+                            type="number"
+                            name="months"
+                            min="1"
+                            max="12"
+                            value="{{ form.get('months', 12) }}"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label>
+                            Paid workers
+                        </label>
+
+                        <input
+                            type="number"
+                            name="paid_workers"
+                            min="0"
+                            value="{{ form.get('paid_workers', 0) }}"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label>
+                            Unpaid workers
+                        </label>
+
+                        <input
+                            type="number"
+                            name="unpaid_workers"
+                            min="0"
+                            value="{{ form.get('unpaid_workers', 0) }}"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label>
+                            Monthly raw-material
+                            cost (UGX)
+                        </label>
+
+                        <input
+                            type="number"
+                            name="raw_material_cost"
+                            min="0"
+                            step="1000"
+                            value="{{ form.get('raw_material_cost', 100000) }}"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label>
+                            Other monthly operating
+                            cost (UGX)
+                        </label>
+
+                        <input
+                            type="number"
+                            name="operating_cost"
+                            min="0"
+                            step="1000"
+                            value="{{ form.get('operating_cost', 10000) }}"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label>
+                            Current monthly gross
+                            revenue (UGX)
+                        </label>
+
+                        <input
+                            type="number"
+                            name="current_revenue"
+                            min="0"
+                            step="1000"
+                            value="{{ form.get('current_revenue', 400000) }}"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-column">
+
+                    <div class="field">
+
+                        <label>
+                            Business sector
+                        </label>
+
+                        <select name="sector" required>
+
+                            {% for item in options["business_sector"] %}
+
+                            <option
+                                value="{{ item }}"
+                                {% if form.get('sector') == item %}
+                                    selected
+                                {% elif not form.get('sector') and loop.first %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ item }}
+                            </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label>
+                            How was the business acquired?
+                        </label>
+
+                        <select name="acquisition" required>
+
+                            {% for item in options["business_acquisition_method"] %}
+
+                            <option
+                                value="{{ item }}"
+                                {% if form.get('acquisition') == item %}
+                                    selected
+                                {% elif not form.get('acquisition') and loop.first %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ item }}
+                            </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label>
+                            Main startup funding source
+                        </label>
+
+                        <select name="funding" required>
+
+                            {% for item in options["startup_funding_source"] %}
+
+                            <option
+                                value="{{ item }}"
+                                {% if form.get('funding') == item %}
+                                    selected
+                                {% elif not form.get('funding') and loop.first %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ item }}
+                            </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label>
+                            Business location
+                        </label>
+
+                        <select name="location" required>
+
+                            {% for item in options["business_location"] %}
+
+                            <option
+                                value="{{ item }}"
+                                {% if form.get('location') == item %}
+                                    selected
+                                {% elif not form.get('location') and loop.first %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ item }}
+                            </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label>
+                            Used funding for expansion?
+                        </label>
+
+                        <select name="expansion" required>
+
+                            {% for item in options["used_funding_for_expansion"] %}
+
+                            <option
+                                value="{{ item }}"
+                                {% if form.get('expansion') == item %}
+                                    selected
+                                {% elif not form.get('expansion') and loop.first %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ item }}
+                            </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label>
+                            VAT registration status
+                        </label>
+
+                        <select name="vat" required>
+
+                            {% for item in options["vat_registration_status"] %}
+
+                            <option
+                                value="{{ item }}"
+                                {% if form.get('vat') == item %}
+                                    selected
+                                {% elif not form.get('vat') and loop.first %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ item }}
+                            </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="field">
+
+                        <label>
+                            Income-tax registration status
+                        </label>
+
+                        <select name="income_tax" required>
+
+                            {% for item in options["income_tax_registration_status"] %}
+
+                            <option
+                                value="{{ item }}"
+                                {% if form.get('income_tax') == item %}
+                                    selected
+                                {% elif not form.get('income_tax') and loop.first %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ item }}
+                            </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <button
+                class="predict-button"
+                type="submit"
+            >
+                Classify Revenue Trend
+            </button>
+
+        </form>
+
+
+        {% if class_result %}
+
+        <div class="result-card success">
+
+            <p>
+                Predicted Revenue Trend
+            </p>
+
+            <h2>
+                {{ class_result }}
+            </h2>
+
+            <small>
+                Multinomial Logistic Regression
+            </small>
+
+        </div>
+
+
+        {% if class_probabilities %}
+
+        <div class="probabilities">
+
+            <h3>
+                Class Probabilities
+            </h3>
+
+            {% for item in class_probabilities %}
+
+            <div class="probability-row">
+
+                <div class="probability-label">
+
+                    <span>
+                        {{ item.class_name }}
+                    </span>
+
+                    <strong>
+                        {{ "%.1f"|format(item.probability) }}%
+                    </strong>
+
+                </div>
+
+                <div class="probability-track">
+
+                    <div
+                        class="probability-bar"
+                        style="width: {{ item.probability }}%;"
+                    >
+                    </div>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        {% endif %}
+
+        {% endif %}
+
+
+        {% if class_error %}
+
+        <div class="result-card error">
+            {{ class_error }}
+        </div>
+
+        {% endif %}
+
+    </section>
+
+
+    <!-- ========================================= -->
+    <!-- ABOUT TAB -->
+    <!-- ========================================= -->
+
+    <section
+        id="about"
+        class="tab-content"
+    >
+
+        <h2>
+            About the Models
+        </h2>
+
+        <div class="about-grid">
+
+            <div class="about-card">
+
+                <h3>
+                    💰 Regression
+                </h3>
+
+                <p>
+                    <strong>Model:</strong>
+                    {{ metadata["regression"]["algorithm"] }}
+                </p>
+
+                <p>
+                    Predicts average monthly gross
+                    enterprise revenue in Uganda
+                    Shillings.
+                </p>
+
+            </div>
+
+
+            <div class="about-card">
+
+                <h3>
+                    📈 Classification
+                </h3>
+
+                <p>
+                    <strong>Model:</strong>
+                    {{ metadata["classification"]["algorithm"] }}
+                </p>
+
+                <p>
+                    Predicts whether enterprise
+                    revenue Increased, Decreased,
+                    or Remained the same.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="pipeline-card">
+
+            <h3>
+                Flask Prediction Flow
+            </h3>
+
+            <div class="flow">
+
+                Browser Form
+
+                <span>→</span>
+
+                Flask Route
+
+                <span>→</span>
+
+                Pandas DataFrame
+
+                <span>→</span>
+
+                Saved Scikit-learn Pipeline
+
+                <span>→</span>
+
+                Prediction
+
+                <span>→</span>
+
+                HTML Result
+
+            </div>
+
+        </div>
+
+
+        <p class="academic-note">
+
+            The deployed models are already fitted.
+            Flask loads the saved
+            <code>.joblib</code>
+            pipelines when the server starts.
+            The application therefore does not
+            retrain the models for each prediction.
+
+        </p>
+
+    </section>
+
+</div>
+
+
+<!-- ========================================= -->
+<!-- TAB JAVASCRIPT -->
+<!-- ========================================= -->
+
+<script>
+
+    const tabButtons =
+        document.querySelectorAll(
+            ".tab-button"
+        );
+
+    const tabContents =
+        document.querySelectorAll(
+            ".tab-content"
+        );
+
+
+    function openTab(tabName) {
+
+        tabContents.forEach(
+            function(content) {
+                content.classList.remove(
+                    "active"
+                );
+            }
+        );
+
+
+        tabButtons.forEach(
+            function(button) {
+                button.classList.remove(
+                    "active"
+                );
+            }
+        );
+
+
+        document
+            .getElementById(tabName)
+            .classList
+            .add("active");
+
+
+        document
+            .querySelector(
+                '[data-tab="' +
+                tabName +
+                '"]'
+            )
+            .classList
+            .add("active");
+    }
+
+
+    tabButtons.forEach(
+        function(button) {
+
+            button.addEventListener(
+                "click",
+                function() {
+
+                    openTab(
+                        button.dataset.tab
+                    );
+
+                }
+            );
+
+        }
+    );
+
+
+    const initialTab =
+        document.body.dataset.activeTab
+        || "regression";
+
+
+    openTab(initialTab);
+
+</script>
+
+</body>
+
+</html>

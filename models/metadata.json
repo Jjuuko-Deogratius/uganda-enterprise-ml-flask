@@ -1,0 +1,81 @@
+{
+  "survey_reference_year": 2020,
+  "regression": {
+    "algorithm": "Random Forest Regression",
+    "target": "Monthly gross revenue (UGX)",
+    "training_records": 1121,
+    "notebook_test_metrics": {
+      "R2": 0.837577,
+      "MAE_UGX": 408166.76,
+      "RMSE_UGX": 1143812.0
+    }
+  },
+  "classification": {
+    "algorithm": "Multinomial Logistic Regression",
+    "target": "Revenue trend",
+    "training_records": 1116,
+    "classes": [
+      "Decreased",
+      "Increased",
+      "Remained the same"
+    ],
+    "notebook_test_metrics": {
+      "Accuracy": 0.545,
+      "Balanced_Accuracy": 0.508,
+      "Macro_F1": 0.493
+    }
+  },
+  "category_options": {
+    "business_sector": [
+      "Agriculture",
+      "Forestry",
+      "Hotels, Bars & Restaurants",
+      "Manufacturing, mining & quarrying",
+      "Trade & Services"
+    ],
+    "business_acquisition_method": [
+      "Allocated by family",
+      "Don't Know",
+      "Founded",
+      "Gift from non-household member",
+      "Inherited after death of family member",
+      "Other",
+      "Purchased"
+    ],
+    "startup_funding_source": [
+      "Commercial/Development Bank",
+      "Deposit Taking Microfinance Institution",
+      "Didn't need any money",
+      "Local group",
+      "NGO",
+      "Other",
+      "Own/household's savings",
+      "SACCO"
+    ],
+    "business_location": [
+      "Commercial District shop",
+      "Home inside the residence",
+      "Home outside the residence",
+      "Industrial site",
+      "Mobile",
+      "Other Fixed place",
+      "Roadside",
+      "Traditional market"
+    ],
+    "used_funding_for_expansion": [
+      "No",
+      "Yes"
+    ],
+    "vat_registration_status": [
+      "Don't Know",
+      "No",
+      "Refused",
+      "Yes"
+    ],
+    "income_tax_registration_status": [
+      "Don't Know",
+      "No",
+      "Yes"
+    ]
+  }
+}
